@@ -4,101 +4,73 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Palm Port Pty Ltd — 業務統合プラットフォーム（デモ）</title>
-  <meta name="description" content="Palm Port Pty Ltd 向け 業務統合プラットフォーム プロトタイプ / たたき台" />
+  <title>Palm Port Pty Ltd — 業務統合プラットフォーム</title>
+  <meta name="description" content="Palm Port Pty Ltd 向け 業務統合プラットフォーム — 予約・ロスター・日報・請求(XERO)・給与を1つに" />
   <link rel="stylesheet" href="styles.css" />
-  <!-- drag & drop (touch + mouse), no build step -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
 </head>
-<body>
+<body data-biz="tourism">
 
-  <!-- ===== Top bar ===== -->
-  <header class="topbar">
+  <!-- ===== Sidebar ===== -->
+  <aside class="sidebar">
     <div class="brand">
       <div class="logo">🐬</div>
       <div>
-        <h1>Palm Port — 業務統合プラットフォーム</h1>
-        <div class="sub">Unified Operations · Cairns QLD · プロトタイプ（たたき台）</div>
+        <div class="brand-name">Palm Port</div>
+        <div class="brand-sub">Unified Operations</div>
       </div>
     </div>
 
-    <div class="toggle" role="tablist" aria-label="business">
+    <div class="biz-toggle" role="tablist" aria-label="business">
       <button data-biz="tourism" class="active"><span class="dot"></span>旅行業 PDC</button>
       <button data-biz="cleaning"><span class="dot"></span>清掃業 JQC</button>
     </div>
 
-    <div class="spacer"></div>
+    <nav class="nav">
+      <a href="#/dashboard" data-route="dashboard"><span class="ic">📊</span>ダッシュボード</a>
+      <div class="nav-group">業務フロー</div>
+      <a href="#/bookings"  data-route="bookings"><span class="ic">📥</span>予約入力<span class="step">1</span></a>
+      <a href="#/roster"    data-route="roster"><span class="ic">🗓</span>ロスター<span class="step">2</span></a>
+      <a href="#/daily"     data-route="daily"><span class="ic">📋</span>日報 Daily<span class="step">3</span></a>
+      <a href="#/invoicing" data-route="invoicing"><span class="ic">🧾</span>請求 / XERO<span class="step">4</span></a>
+      <a href="#/payroll"   data-route="payroll"><span class="ic">💰</span>給与計算<span class="step">5</span></a>
+      <div class="nav-group">マスタ</div>
+      <a href="#/staff"     data-route="staff"><span class="ic">👥</span>スタッフ・権限</a>
+      <a href="#/customers" data-route="customers"><span class="ic">🏷</span>顧客</a>
+    </nav>
 
-    <div class="week-nav">
-      <button title="prev">‹</button>
-      <span>21–27 Sep 2026</span>
-      <button title="next">›</button>
+    <div class="side-foot">
+      <button class="btn ghost block" id="btnReset">↺ デモデータ初期化</button>
+      <p class="side-note">プロトタイプ — 入力はこの端末に保存されます。</p>
     </div>
-    <button class="btn-mobile" id="btnMobile">📱 スタッフ携帯画面</button>
-  </header>
+  </aside>
 
-  <!-- ===== KPI strip ===== -->
-  <section class="kpis" id="kpis"></section>
+  <!-- ===== Main ===== -->
+  <div class="main">
+    <header class="topbar">
+      <button class="burger" id="burger" aria-label="menu">☰</button>
+      <div class="crumb-wrap"><span class="crumb-pre">Palm Port /</span> <b id="crumb">ダッシュボード</b></div>
+      <div class="spacer"></div>
+      <div class="week-pill">📆 21–27 Sep 2026</div>
+      <button class="btn-mobile" id="btnMobile">📱 スタッフ携帯画面</button>
+    </header>
 
-  <!-- ===== Enter-once banner ===== -->
-  <div class="enter-once">
-    <div class="title">⚡ 1回入力 → 自動反映</div>
-    <div class="flow" id="flow">
-      <span class="chip">📥 予約入力</span><span class="arrow">→</span>
-      <span class="chip">🗓 ロスター</span><span class="arrow">→</span>
-      <span class="chip">📋 日報 Daily</span><span class="arrow">→</span>
-      <span class="chip">🧾 請求 / XERO</span><span class="arrow">→</span>
-      <span class="chip">💰 給与計算</span>
-    </div>
+    <main class="view" id="view"></main>
   </div>
 
-  <!-- ===== Main layout ===== -->
-  <div class="layout">
-
-    <!-- unassigned pool -->
-    <aside class="panel">
-      <div class="panel-head">
-        <h2>📥 未割当の予約</h2>
-        <span class="count" id="poolCount">0</span>
-      </div>
-      <div class="pool-body" id="poolBody"></div>
-    </aside>
-
-    <!-- roster -->
-    <section class="panel">
-      <div class="panel-head">
-        <h2>🗓 ロスター（ドラッグ＆ドロップで割当）</h2>
-        <span style="font-size:11px;color:var(--ink-soft)">カードをスタッフ×曜日のマスへドラッグ</span>
-      </div>
-      <div class="roster-wrap">
-        <div class="roster" id="roster"></div>
-      </div>
-    </section>
-
-  </div>
-
-  <p class="demo-note">
-    これは <b>デモ（たたき台）</b> です — モックデータで動作しています。実際の運用ヒアリング後、御社の現場に合わせて作り込みます。<br>
-    Drag a job card onto any staff/day cell. Toggle 旅行業/清掃業. Tap 📱 for the staff mobile view.
-  </p>
-
-  <!-- ===== Mobile staff view modal ===== -->
-  <div class="overlay" id="overlay">
-    <div class="phone">
-      <button class="close-x" id="closeMobile">×</button>
-      <div class="notch"></div>
-      <div class="phone-head">
-        <div class="who" id="mWho">—</div>
-        <div class="date" id="mDate">—</div>
-      </div>
-      <div class="phone-body" id="phoneBody"></div>
-      <div class="phone-pick">
-        <span>👤</span>
-        <select id="mobilePick"></select>
-      </div>
-    </div>
-  </div>
-
-  <script src="app.js"></script>
+  <!-- scripts: order matters (classic scripts, no build step) -->
+  <script src="js/store.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/views/dashboard.js"></script>
+  <script src="js/views/bookings.js"></script>
+  <script src="js/views/roster.js"></script>
+  <script src="js/views/daily.js"></script>
+  <script src="js/views/invoicing.js"></script>
+  <script src="js/views/payroll.js"></script>
+  <script src="js/views/staff.js"></script>
+  <script src="js/views/customers.js"></script>
+  <script src="js/views/mobile.js"></script>
+  <script src="js/router.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>

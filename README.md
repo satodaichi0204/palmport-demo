@@ -1,36 +1,43 @@
-# Palm Port — Unified Operations (Demo)
+# Palm Port — 業務統合プラットフォーム (Unified Operations)
 
-Static prototype (たたき台) for Palm Port Pty Ltd. Pure HTML/CSS/JS — **no build step, no backend**. Mock data only.
+A working web app for **Palm Port Pty Ltd** (Cairns QLD) that runs two businesses on one platform — **旅行業 (PDC, tourism)** and **清掃業 (JQC, cleaning)** — built around one idea:
 
-## What it shows
-- 🗓 **Drag-and-drop roster** — staff × day grid; drag jobs from the *未割当 (unassigned)* pool onto any staff/day cell (works on touch + mouse via SortableJS).
-- ⚡ **"Enter once → auto-reflect"** — moving a job pulses the 予約→ロスター→日報→請求/XERO→給与 flow.
-- 🔄 **Tourism (PDC) ⇄ Cleaning (JQC) toggle** — two businesses, one platform. Cleaning jobs show 🔁 Recurring / WhatsApp; tourism shows Per-person / LINE.
-- 📱 **Staff mobile view** — tap "スタッフ携帯画面" to see one staff member's day with customer details, notes, and a GPS-start button (cleaning).
-- 📊 KPI strip (income / cost / margin / jobs / unassigned) recomputes live.
+> **⚡ 1回入力 → 自動反映** — enter a booking once and it flows automatically through every stage:
+> **予約 → ロスター → 日報 → 請求 / XERO → 給与**
+
+Pure HTML/CSS/JS — **no build step, no server**. Data is held in a shared client-side store and persisted to the browser (`localStorage`), so everything you enter on one page is immediately reflected on every other page.
+
+## Pages / features
+
+| # | Page | What it does |
+|---|------|--------------|
+| — | **ダッシュボード** Dashboard | Live KPIs (income, cost, margin, jobs, unassigned, outstanding), the 1-input flow, today's jobs |
+| 1 | **予約入力** Bookings | Create / edit bookings. One entry creates the job that flows downstream. Inline new-customer. |
+| 2 | **ロスター** Roster | Drag-and-drop staff × day grid (touch + mouse via SortableJS). Assigning updates daily + payroll instantly. |
+| 3 | **日報** Daily Report | Per-day job completion — start/actual times, completion notes, cleaning photos. Completing feeds invoicing + payroll. |
+| 4 | **請求 / XERO** Invoicing | Auto-group completed jobs by customer → generate invoices with **GST 10%**, send to XERO (mock), mark paid, CSV export. |
+| 5 | **給与計算** Payroll | Auto-computes weekly wages from roster hours × pay rate, per-staff breakdown, CSV export for payroll software. |
+| — | **スタッフ・権限** Staff & Access | Manage staff, roles, pay rates, contact, and per-screen access permissions; activate/deactivate. |
+| — | **顧客** Customers | Client/agent directory with channel (LINE / WhatsApp), job count, and revenue to date. |
+| — | **📱 スタッフ携帯画面** Mobile | Per-staff field view of today's jobs with GPS-start / complete actions that write back to the daily report. |
+
+Toggle **旅行業 PDC / 清掃業 JQC** in the sidebar — each business has its own staff, customers, jobs, channels and theming.
 
 ## Run locally
-Just open `index.html` in a browser. (Or serve it: `npx serve .`)
+Open `index.html` in a browser, or serve it: `npx serve .`
+(Use **↺ デモデータ初期化** in the sidebar to reset to seed data.)
 
-## Deploy to Vercel
-**Option A — CLI (fastest):**
-```bash
-npm i -g vercel      # once
-cd palmport-demo
-vercel               # follow prompts → preview URL
-vercel --prod        # production URL to send the client
-```
-
-**Option B — Dashboard:**
-1. Push this folder to a GitHub repo (or drag-drop the folder at vercel.com/new).
-2. Framework preset: **Other** (it's static). No build command, output dir = root.
-3. Deploy → copy the URL.
-
-That URL is what you send the client — opens on desktop and phone, nothing to install.
-
-## Files
+## Architecture (no build step)
 | File | Purpose |
 |------|---------|
-| `index.html` | Page structure |
-| `styles.css` | All styling |
-| `app.js` | Mock data + render + drag/drop logic |
+| `index.html` | App shell — sidebar nav, topbar, view mount |
+| `styles.css` | All styling (sidebar layout, tables, forms, modals, roster, mobile) |
+| `js/store.js` | **Single source of truth** — seed data, localStorage persistence, pub/sub, all business logic |
+| `js/components.js` | Shared helpers — formatters, job cards, modal, toast |
+| `js/router.js` | Hash router; re-renders the active view whenever the store changes |
+| `js/views/*.js` | One module per page (dashboard, bookings, roster, daily, invoicing, payroll, staff, customers, mobile) |
+| `js/app.js` | Bootstrap — business toggle, nav, mobile launcher |
+
+## Deploy
+Connected to GitHub → Vercel. **Push to `main` auto-deploys** to production; pull requests get preview URLs.
+Live: https://palmport-demo.vercel.app
