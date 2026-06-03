@@ -69,21 +69,22 @@
   function groupHTML(g) {
     const subtotal = g.jobs.reduce((s, j) => s + j.price, 0);
     const gst = Math.round(subtotal * 0.1 * 100) / 100;
+    const recurring = g.jobs.some((j) => j.recurring);
     return `<div class="inv-group">
       <div class="ig-head">
-        <div><b>${esc(g.customer)}</b> <span class="muted">· ${g.jobs.length} 件</span></div>
+        <div><b>${esc(g.customer)}</b> <span class="muted">· ${g.jobs.length} 件</span>${recurring ? ` <span class="badge recurring">🔁 Repeating</span>` : ""}</div>
         <div class="ig-amt">小計 ${money2(subtotal)} ＋GST ${money2(gst)} = <b>${money2(subtotal + gst)}</b></div>
       </div>
       <div class="ig-jobs">
         ${g.jobs.map((j) => `<div class="ig-job"><span>${fmtDate(j.date)} · ${esc(j.title)} <span class="mono muted">${esc(j.ref)}</span></span><span>${money2(j.price)}</span></div>`).join("")}
       </div>
-      <button class="btn primary sm" data-mkinv="${g.jobs.map((j) => j.id).join(",")}">🧾 請求書を作成</button>
+      <button class="btn primary sm" data-mkinv="${g.jobs.map((j) => j.id).join(",")}">🧾 ${recurring ? "Repeating Invoice 作成 (XERO)" : "請求書を作成"}</button>
     </div>`;
   }
 
   function invRow(i) {
     return `<tr>
-      <td class="mono"><b>${esc(i.id)}</b></td>
+      <td class="mono"><b>${esc(i.id)}</b>${i.recurring ? ` <span class="badge recurring" title="Repeating ${esc(i.frequency || "")}">🔁</span>` : ""}</td>
       <td>${esc(i.customer)}</td>
       <td>${fmtDate(i.date)}</td>
       <td class="r">${money2(i.subtotal)}</td>

@@ -2,7 +2,7 @@
 (function (global) {
   "use strict";
 
-  const ROUTES = ["dashboard", "bookings", "roster", "daily", "invoicing", "payroll", "staff", "customers"];
+  const ROUTES = ["dashboard", "bookings", "roster", "daily", "messaging", "invoicing", "suppliers", "payroll", "analytics", "staff", "vehicles", "tariff", "customers"];
   const DEFAULT = "dashboard";
 
   let current = null;

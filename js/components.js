@@ -52,11 +52,12 @@
 
   function jobCardHTML(j, opts) {
     opts = opts || {};
-    return `<div class="job ${j.cls}" data-id="${j.id}" ${opts.draggable !== false ? 'draggable="true"' : ""}>
-      <div class="j-time">${esc(j.time)} · <span style="opacity:.6">${esc(j.ref)}</span>${opts.showStatus ? " " + statusPill(j.status) : ""}</div>
+    const veh = j.vehicleId && window.Store ? Store.vehicleById(j.vehicleId) : null;
+    return `<div class="job ${j.cls}${j.invoiceId ? " invoiced" : ""}" data-id="${j.id}" ${opts.draggable !== false ? 'draggable="true"' : ""} title="${j.invoiceId ? "請求済 " + j.invoiceId : ""}">
+      <div class="j-time">${esc(j.time)} · <span style="opacity:.6">${esc(j.ref)}</span>${opts.showStatus ? " " + statusPill(j.status) : ""}${j.invoiceId ? ' <span class="badge xero">🧾</span>' : ""}</div>
       <div class="j-title">${esc(j.title)}</div>
       <div class="j-meta">${esc(j.customer)}${j.pax > 1 ? ` (${j.pax} pax)` : ""} — ${esc(j.meta)}</div>
-      <div class="badges">${badgeHTML(j)}<span class="badge price">${money(j.price)}</span></div>
+      <div class="badges">${badgeHTML(j)}<span class="badge price">${money(j.price)}</span>${veh ? `<span class="badge">🚐 ${esc(veh.rego || veh.name)}</span>` : ""}</div>
     </div>`;
   }
 
