@@ -19,7 +19,17 @@ Pure HTML/CSS/JS — **no build step, no server**. Data is held in a shared clie
 | 5 | **給与計算** Payroll | Auto-computes weekly wages from roster hours × pay rate, per-staff breakdown, CSV export for payroll software. |
 | — | **スタッフ・権限** Staff & Access | Manage staff, roles, pay rates, contact, and per-screen access permissions; activate/deactivate. |
 | — | **顧客** Customers | Client/agent directory with channel (LINE / WhatsApp), job count, and revenue to date. |
+| — | **✉️ 自動連絡** Messaging | Auto-generates agent **Confirmation emails** (tourism) and **WhatsApp reminders 2 days before** (cleaning) — preview, copy, send (mock). |
+| — | **📦 サプライヤー支払** Supplier Payment | Sums job costs by supplier over the fortnight (DOL SP COST), CSV export. |
+| — | **📈 経営分析** Analytics | Income / cost / profit / margin per business, tourism-vs-cleaning ratio bars, cost breakdown. |
+| — | **🚐 車両管理** Vehicles | Fleet register (11 coaches/buses + 7 cleaning vehicles), capacity; assignable to jobs. |
+| — | **🏷 料金マスタ** Tariff | Job price master (Per person / Per job rates + pay hours); booking form pulls from it. |
 | — | **📱 スタッフ携帯画面** Mobile | Per-staff field view of today's jobs with GPS-start / complete actions that write back to the daily report. |
+
+Payroll runs **fortnightly** with fuel / equipment / reimbursement allowances and printable **wage payment slips**. Invoicing supports **recurring (repeating) invoices** for cleaning, and invoiced jobs are highlighted yellow on the roster.
+
+### ⚠️ What still needs a backend (not in this static build)
+Real **XERO sync**, **email / WhatsApp auto-send**, **real GPS**, multi-user **login**, and shared/cross-device **data storage** all require a server + paid integrations. This build stores data in the browser (`localStorage`) only — fine for demonstrating the workflows, not for production data safety.
 
 Toggle **旅行業 PDC / 清掃業 JQC** in the sidebar — each business has its own staff, customers, jobs, channels and theming.
 
