@@ -72,14 +72,32 @@
     return `<span class="status-pill ${status}">${STATUS_LABEL[status] || status}</span>`;
   }
 
+  // map a job to a representative photo (committed under assets/img)
+  function imgFor(j) {
+    const t = ((j.title || "") + " " + (j.meta || "") + " " + (j.cls || "")).toLowerCase();
+    if (j.cls === "transfer" || /transfer|trf|airport|hotel/.test(t)) return "assets/img/transfer.jpg";
+    if (/kuranda/.test(t)) return "assets/img/kuranda.jpg";
+    if (/green island|island/.test(t)) return "assets/img/green-island.jpg";
+    if (/atherton|tableland/.test(t)) return "assets/img/atherton.jpg";
+    if (/gbr|pier|reef|shuttle|snorkel/.test(t)) return "assets/img/gbr-boat.jpg";
+    if (j.cls === "bond" || /bond/.test(t)) return "assets/img/bond-clean.jpg";
+    if (/office/.test(t)) return "assets/img/clean-office.jpg";
+    if (j.biz === "cleaning" || j.cls === "clean") return "assets/img/clean-home.jpg";
+    return "assets/img/coach.jpg";
+  }
+
   function jobCardHTML(j, opts) {
     opts = opts || {};
     const veh = j.vehicleId && window.Store ? Store.vehicleById(j.vehicleId) : null;
-    return `<div class="job ${j.cls}${j.invoiceId ? " invoiced" : ""}" data-id="${j.id}" ${opts.draggable !== false ? 'draggable="true"' : ""} title="${j.invoiceId ? "請求済 " + j.invoiceId : ""}">
-      <div class="j-time">${esc(j.time)} · <span style="opacity:.6">${esc(j.ref)}</span>${opts.showStatus ? " " + statusPill(j.status) : ""}${j.invoiceId ? ' <span class="badge xero">🧾</span>' : ""}</div>
-      <div class="j-title">${esc(j.title)}</div>
-      <div class="j-meta">${esc(j.customer)}${j.pax > 1 ? ` (${j.pax} pax)` : ""} — ${esc(j.meta)}</div>
-      <div class="badges">${badgeHTML(j)}<span class="badge price">${money(j.price)}</span>${veh ? `<span class="badge">🚐 ${esc(veh.rego || veh.name)}</span>` : ""}</div>
+    const thumb = opts.thumb ? `<div class="j-thumb" style="background-image:url('${imgFor(j)}')"></div>` : "";
+    return `<div class="job ${j.cls}${j.invoiceId ? " invoiced" : ""}${opts.thumb ? " has-thumb" : ""}" data-id="${j.id}" ${opts.draggable !== false ? 'draggable="true"' : ""} title="${j.invoiceId ? "請求済 " + j.invoiceId : ""}">
+      ${thumb}
+      <div class="j-body">
+        <div class="j-time">${esc(j.time)} · <span style="opacity:.6">${esc(j.ref)}</span>${opts.showStatus ? " " + statusPill(j.status) : ""}${j.invoiceId ? ' <span class="badge xero">🧾</span>' : ""}</div>
+        <div class="j-title">${esc(j.title)}</div>
+        <div class="j-meta">${esc(j.customer)}${j.pax > 1 ? ` (${j.pax} pax)` : ""} — ${esc(j.meta)}</div>
+        <div class="badges">${badgeHTML(j)}<span class="badge price">${money(j.price)}</span>${veh ? `<span class="badge">🚐 ${esc(veh.rego || veh.name)}</span>` : ""}</div>
+      </div>
     </div>`;
   }
 
@@ -136,6 +154,6 @@
 
   global.UI = {
     $, $$, money, money2, initials, esc, fmtDate, fmtDateLong, addDays, mondayOf, weekDates, weekLabel,
-    badgeHTML, jobCardHTML, statusPill, STATUS_LABEL, toast, modal, closeModal, confirmDialog, kpi, DOW, MON,
+    badgeHTML, jobCardHTML, imgFor, statusPill, STATUS_LABEL, toast, modal, closeModal, confirmDialog, kpi, DOW, MON,
   };
 })(window);

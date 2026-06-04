@@ -74,6 +74,7 @@
     const s = Store.staffById(j.assigned);
     const invoiced = !!j.invoiceId;
     return `<div class="report-card ${j.cls} ${j.status}">
+      <div class="rc-thumb" style="background-image:url('${UI.imgFor(j)}')"></div>
       <div class="rc-left">
         <div class="rc-time">${esc(j.time)}${j.actualStart ? ` <span class="muted">→ 実 ${esc(j.actualStart)}${j.actualEnd ? "–" + esc(j.actualEnd) : ""}</span>` : ""}</div>
         <div class="rc-title">${esc(j.title)} <span class="mono muted">${esc(j.ref)}</span></div>

@@ -19,11 +19,20 @@
       const invoices = Store.invoices(biz);
       const outstanding = invoices.filter((i) => i.status !== "paid").reduce((s, i) => s + i.total, 0);
 
+      const heroImg = biz === "cleaning" ? "assets/img/clean-office.jpg" : "assets/img/hero-reef.jpg";
       el.innerHTML = `
-        <div class="page-head">
-          <div><h1>ダッシュボード <span class="muted">/ Dashboard</span></h1>
-          <p class="muted">${esc(Store.BUSINESSES[biz].name)} · 週 21–27 Sep 2026 · Cairns QLD</p></div>
-        </div>
+        <section class="hero" style="background-image:linear-gradient(105deg, rgba(8,15,30,.82) 0%, rgba(8,15,30,.55) 45%, rgba(8,15,30,.15) 100%), url('${heroImg}')">
+          <div class="hero-inner">
+            <div class="hero-eyebrow">PALM PORT · UNIFIED OPERATIONS</div>
+            <h1>おかえりなさい 👋</h1>
+            <p>${esc(Store.BUSINESSES[biz].name)} · Cairns QLD · 週 21–27 Sep 2026</p>
+            <div class="hero-cta">
+              <a class="btn primary" href="#/bookings">＋ 新規予約</a>
+              <a class="btn glass" href="#/roster">🗓 ロスターを開く</a>
+              <a class="btn glass" href="#/analytics">📈 経営分析</a>
+            </div>
+          </div>
+        </section>
 
         <section class="kpis">
           ${kpi("今週の売上 / Income", money(income), "↑ vs last wk", "up")}
@@ -50,7 +59,7 @@
             <div class="panel-head"><h2>📅 本日のジョブ — ${fmtDateLong(Store.TODAY)}</h2>
               <span class="count gray">${today.length}</span></div>
             <div class="pad list-gap" id="todayList">
-              ${today.length ? today.map((j) => jobCardHTML(j, { showStatus: true, draggable: false })).join("")
+              ${today.length ? today.map((j) => jobCardHTML(j, { showStatus: true, draggable: false, thumb: true })).join("")
                 : `<div class="pool-hint">本日のジョブはありません。</div>`}
             </div>
           </section>
@@ -58,7 +67,7 @@
           <section class="panel">
             <div class="panel-head"><h2>📥 未割当の予約</h2><span class="count">${unassigned}</span></div>
             <div class="pad list-gap">
-              ${unassigned ? all.filter((j) => !j.assigned).map((j) => jobCardHTML(j, { draggable: false })).join("")
+              ${unassigned ? all.filter((j) => !j.assigned).map((j) => jobCardHTML(j, { draggable: false, thumb: true })).join("")
                 : `<div class="pool-hint">✅ 未割当のジョブはありません。</div>`}
               ${unassigned ? `<a class="btn primary block" href="#/roster">🗓 ロスターで割り当てる</a>` : ""}
             </div>

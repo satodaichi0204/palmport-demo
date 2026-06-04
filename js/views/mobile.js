@@ -67,6 +67,7 @@
 
   function cardHTML(j) {
     return `<div class="m-card ${j.cls} ${j.status}">
+      <div class="m-banner" style="background-image:url('${UI.imgFor(j)}')"><span class="m-banner-tag">${esc(j.time)}</span></div>
       <div class="m-time">${esc(j.time)} · ${esc(j.ref)} ${UI.statusPill(j.status)}</div>
       <div class="m-title">${esc(j.title)}</div>
       <div class="m-row">👤 ${esc(j.customer)}${j.pax > 1 ? ` (${j.pax} pax)` : ""}</div>

@@ -37,6 +37,18 @@
     if (burger) burger.addEventListener("click", () => document.body.classList.toggle("nav-open"));
     $$(".nav a[data-route]").forEach((a) => a.addEventListener("click", () => document.body.classList.remove("nav-open")));
 
+    // login / splash
+    const splash = $("#splash");
+    const enter = $("#splashEnter");
+    if (splash && enter) {
+      enter.addEventListener("click", () => {
+        const role = $("#splashRole").value;
+        splash.classList.add("gone");
+        setTimeout(() => { splash.style.display = "none"; }, 500);
+        if (role === "staff") setTimeout(() => MobileView.open(), 350);
+      });
+    }
+
     // go!
     Router.start($("#view"));
   });

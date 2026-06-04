@@ -32,7 +32,7 @@
           <aside class="panel">
             <div class="panel-head"><h2>📥 未割当</h2><span class="count" id="poolCount">${pool.length}</span></div>
             <div class="pool-body" id="poolBody">
-              ${pool.length ? pool.map((j) => jobCardHTML(j)).join("")
+              ${pool.length ? pool.map((j) => jobCardHTML(j, { thumb: true })).join("")
                 : `<div class="pool-hint">✅ 未割当はありません。<br>新規予約はここに入り、<br>ドラッグで割当します。</div>`}
             </div>
           </aside>

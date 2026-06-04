@@ -6,10 +6,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Palm Port Pty Ltd — 業務統合プラットフォーム</title>
   <meta name="description" content="Palm Port Pty Ltd 向け 業務統合プラットフォーム — 予約・ロスター・日報・請求(XERO)・給与を1つに" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" />
   <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
 </head>
 <body data-biz="tourism">
+
+  <!-- ===== Login / splash ===== -->
+  <div class="splash" id="splash" style="background-image:linear-gradient(120deg, rgba(7,14,28,.86), rgba(7,14,28,.45)), url('assets/img/hero-reef.jpg')">
+    <div class="splash-card">
+      <div class="splash-logo">🐬</div>
+      <div class="splash-brand">Palm&nbsp;Port</div>
+      <div class="splash-sub">業務統合プラットフォーム · Unified Operations</div>
+      <p class="splash-tag">旅行業 (PDC) と 清掃業 (JQC) を1つに。<br>予約 → ロスター → 日報 → 請求 → 給与 を1回入力で。</p>
+      <label class="splash-role">ログイン権限 / Role
+        <select id="splashRole">
+          <option value="admin">管理者 / Admin（全機能）</option>
+          <option value="office">オフィス / Office</option>
+          <option value="staff">スタッフ / Staff（携帯画面）</option>
+        </select>
+      </label>
+      <button class="btn primary block lg" id="splashEnter">ログイン / Enter →</button>
+      <div class="splash-foot">Cairns QLD · Palm Port Pty Ltd · デモ（たたき台）</div>
+    </div>
+  </div>
 
   <!-- ===== Sidebar ===== -->
   <aside class="sidebar">
