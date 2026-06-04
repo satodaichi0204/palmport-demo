@@ -30,6 +30,28 @@
     const dt = new Date(Date.UTC(y, m - 1, d));
     return `${DOW[dt.getUTCDay()]}, ${d} ${MON[m - 1]} ${y}`;
   }
+  function addDays(iso, n) {
+    const [y, m, d] = iso.split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    dt.setUTCDate(dt.getUTCDate() + n);
+    return dt.toISOString().slice(0, 10);
+  }
+  function mondayOf(iso) {
+    const [y, m, d] = iso.split("-").map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    const dow = dt.getUTCDay();
+    dt.setUTCDate(dt.getUTCDate() + (dow === 0 ? -6 : 1 - dow));
+    return dt.toISOString().slice(0, 10);
+  }
+  function weekDates(anchorIso) {
+    const mon = mondayOf(anchorIso);
+    return Array.from({ length: 7 }, (_, i) => addDays(mon, i));
+  }
+  function weekLabel(dates) {
+    const a = dates[0].split("-").map(Number), b = dates[6].split("-").map(Number);
+    const left = a[1] === b[1] ? `${a[2]}` : `${a[2]} ${MON[a[1] - 1]}`;
+    return `${left}–${b[2]} ${MON[b[1] - 1]} ${b[0]}`;
+  }
 
   function badgeHTML(j) {
     let b = "";
@@ -113,7 +135,7 @@
   }
 
   global.UI = {
-    $, $$, money, money2, initials, esc, fmtDate, fmtDateLong,
+    $, $$, money, money2, initials, esc, fmtDate, fmtDateLong, addDays, mondayOf, weekDates, weekLabel,
     badgeHTML, jobCardHTML, statusPill, STATUS_LABEL, toast, modal, closeModal, confirmDialog, kpi, DOW, MON,
   };
 })(window);

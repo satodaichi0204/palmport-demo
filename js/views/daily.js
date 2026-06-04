@@ -1,16 +1,22 @@
 /* ===== Daily Report / 日報 — completion feeds invoicing + payroll ===== */
 (function () {
   "use strict";
-  const { $, $$, esc, money, fmtDateLong, statusPill, initials, toast, modal, closeModal } = UI;
+  const { $, $$, esc, money, fmtDate, fmtDateLong, statusPill, initials, toast, modal, closeModal, weekDates, weekLabel, addDays } = UI;
 
+  let weekAnchor = null;
   let selectedDate = null;
+  let _el = null;
 
   window.Views = window.Views || {};
   window.Views.daily = {
     title: "日報",
     render(el) {
+      _el = el;
       const biz = Store.currentBiz;
-      selectedDate = selectedDate && Store.WEEK.indexOf(selectedDate) >= 0 ? selectedDate : Store.TODAY;
+      weekAnchor = weekAnchor || Store.WEEK[0];
+      const week = weekDates(weekAnchor);
+      if (!selectedDate || week.indexOf(selectedDate) < 0) selectedDate = week.indexOf(Store.TODAY) >= 0 ? Store.TODAY : week[0];
+
       const jobs = Store.jobs({ biz, date: selectedDate }).filter((j) => j.assigned);
       const done = jobs.filter((j) => j.status === "done").length;
       const revenue = jobs.filter((j) => j.status === "done").reduce((s, j) => s + j.price, 0);
@@ -19,14 +25,19 @@
         <div class="page-head">
           <div><h1>日報 <span class="muted">/ Daily Report</span></h1>
           <p class="muted">${fmtDateLong(selectedDate)} · 完了登録すると請求・給与へ反映されます。</p></div>
-          <div class="seg" id="dayPicker">
-            ${Store.WEEK.map((d) => `<button data-d="${d}" class="${d === selectedDate ? "on" : ""}">
-              ${d.slice(8)}<small>${UI.DOW[new Date(d + "T00:00:00Z").getUTCDay()]}</small></button>`).join("")}
+          <div class="hstack">
+            <div class="week-nav"><button id="wPrev" title="前週">‹</button><span>${weekLabel(week)}</span><button id="wNext" title="翌週">›</button></div>
+            <button class="btn ghost" id="byGuide">🖨 Daily BY GUIDE</button>
           </div>
         </div>
 
-        <section class="kpis tri">
-          ${UI.kpi("当日ジョブ / Jobs", jobs.length, `${biz === "cleaning" ? "清掃" : "ツアー・送迎"}`, "")}
+        <div class="seg" id="dayPicker">
+          ${week.map((d) => `<button data-d="${d}" class="${d === selectedDate ? "on" : ""}">
+            ${d.slice(8)}<small>${UI.DOW[new Date(d + "T00:00:00Z").getUTCDay()]}</small></button>`).join("")}
+        </div>
+
+        <section class="kpis tri" style="margin-top:14px">
+          ${UI.kpi("当日ジョブ / Jobs", jobs.length, biz === "cleaning" ? "清掃" : "ツアー・送迎", "")}
           ${UI.kpi("完了 / Completed", `${done}/${jobs.length}`, jobs.length && done === jobs.length ? "全完了 ✓" : "進行中", done === jobs.length && jobs.length ? "up" : "warn")}
           ${UI.kpi("当日売上(完了) / Revenue", money(revenue), "請求対象", "up")}
         </section>
@@ -39,25 +50,25 @@
           </div>
         </section>`;
 
-      $$("#dayPicker button", el).forEach((b) => b.addEventListener("click", () => {
-        selectedDate = b.dataset.d; this2render(el);
-      }));
+      $("#wPrev", el).addEventListener("click", () => { weekAnchor = addDays(weekAnchor, -7); selectedDate = null; render(el); });
+      $("#wNext", el).addEventListener("click", () => { weekAnchor = addDays(weekAnchor, 7); selectedDate = null; render(el); });
+      $("#byGuide", el).addEventListener("click", () => byGuide(selectedDate));
+      $$("#dayPicker button", el).forEach((b) => b.addEventListener("click", () => { selectedDate = b.dataset.d; render(el); }));
       $$("[data-start]", el).forEach((b) => b.addEventListener("click", () => {
         const j = Store.jobById(b.dataset.start);
-        Store.setStatus(j.id, "in_progress", { actualStart: nowHM() });
+        Store.setStatus(j.id, "in_progress", { actualStart: j.time });
         toast(`${j.title} 開始 ▶`);
       }));
       $$("[data-done]", el).forEach((b) => b.addEventListener("click", () => openComplete(b.dataset.done)));
       $$("[data-reopen]", el).forEach((b) => b.addEventListener("click", () => {
         const j = Store.jobById(b.dataset.reopen);
-        if (j.invoiceId) { toast("請求済みのため変更できません", "warn"); return; }
-        Store.setStatus(j.id, "assigned");
-        toast("作業を再オープン");
+        if (j.invoiceId) { toast("請求済のため変更できません", "warn"); return; }
+        Store.setStatus(j.id, "assigned"); toast("作業を再オープン");
       }));
     },
   };
 
-  function this2render(el) { window.Views.daily.render(el); }
+  function render(el) { window.Views.daily.render(el); }
 
   function reportCard(j) {
     const s = Store.staffById(j.assigned);
@@ -105,18 +116,45 @@
         $('[data-act="ok"]', w).addEventListener("click", () => {
           const photos = isClean && $("#cPhotos", w).value
             ? $("#cPhotos", w).value.split(",").map((s) => s.trim()).filter(Boolean) : (j.photos || []);
-          Store.setStatus(id, "done", {
-            actualStart: $("#cStart", w).value, actualEnd: $("#cEnd", w).value,
-            completionNote: $("#cNote", w).value, photos,
-          });
-          closeModal();
-          toast("完了 ✓ 請求・給与へ反映されました");
+          Store.setStatus(id, "done", { actualStart: $("#cStart", w).value, actualEnd: $("#cEnd", w).value, completionNote: $("#cNote", w).value, photos });
+          closeModal(); toast("完了 ✓ 請求・給与へ反映されました");
         });
       },
     });
   }
 
-  function nowHM() { return "09:00"; }
+  // ----- Daily BY GUIDE printable report -----
+  function byGuide(date) {
+    const biz = Store.currentBiz;
+    const staff = Store.staff(biz).filter((s) => s.active);
+    const rows = staff.map((s) => ({ s, jobs: Store.jobs({ biz, staff: s.id, date }) })).filter((r) => r.jobs.length);
+    const body = `
+      <div class="byguide">
+        <div class="bg-head"><div><b>DAILY BY GUIDE</b> — Palm Port (${esc(Store.BUSINESSES[biz].short)})</div><div>${fmtDateLong(date)}</div></div>
+        ${rows.length ? rows.map((r) => `
+          <div class="bg-staff">${esc(r.s.code || "")} ${esc(r.s.name)} <span class="muted">· ${esc(r.s.role)}</span></div>
+          <table class="data tight"><thead><tr>
+            <th>AGT</th><th>Tour</th><th>Tour No</th><th>Service</th><th>Start/Finish</th><th>Place</th><th class="r">Pax</th><th class="r">Inf</th><th class="r">TC</th><th>Coach</th><th>Comment</th>
+          </tr></thead><tbody>
+            ${r.jobs.map((j) => { const v = j.vehicleId ? Store.vehicleById(j.vehicleId) : null; return `<tr>
+              <td>${esc(j.agtCode || "")}</td><td>${esc(j.title)}</td><td class="mono">${esc(j.ref)}</td>
+              <td>${esc(j.fromLoc || "")}${j.toLoc ? " → " + esc(j.toLoc) : ""}</td>
+              <td>${esc(j.startTime || j.time)}${j.finishTime ? "–" + esc(j.finishTime) : ""}</td>
+              <td>${esc(j.meta || "")}</td><td class="r">${j.pax}</td><td class="r">${j.inf || 0}</td><td class="r">${j.tc || 0}</td>
+              <td>${v ? esc(v.rego || v.name) : ""}</td><td>${esc(j.completionNote || j.note || "")}</td></tr>`; }).join("")}
+          </tbody></table>`).join("")
+          : `<p class="pool-hint">この日の割当はありません。</p>`}
+      </div>`;
+    modal("Daily BY GUIDE", body, {
+      wide: true,
+      footer: `<button class="btn ghost" data-act="close">閉じる</button><button class="btn primary" data-act="print">🖨 印刷</button>`,
+      onMount(w) {
+        $('[data-act="close"]', w).addEventListener("click", closeModal);
+        $('[data-act="print"]', w).addEventListener("click", () => window.print());
+      },
+    });
+  }
+
   function addH(hm, h) {
     const [H, M] = hm.split(":").map(Number);
     let t = H * 60 + M + Math.round((Number(h) || 0) * 60);

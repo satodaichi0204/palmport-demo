@@ -306,6 +306,23 @@ button.status-pill { cursor: pointer; }
 /* invoiced job highlight (client: mark roster JOB yellow when invoiced) */
 .job.invoiced { background: #fffbeb; border-color: #fcd34d; }
 
+/* ---------- daily by guide / week nav / print ---------- */
+.hstack { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.week-nav { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+.week-nav button { background: #fff; border: 1px solid var(--line); color: var(--ink); width: 30px; height: 30px; border-radius: 8px; cursor: pointer; font-size: 15px; }
+.week-nav button.sm { width: auto; height: auto; padding: 5px 10px; font-size: 12px; }
+.byguide .bg-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; margin-bottom: 8px; }
+.byguide .bg-staff { font-weight: 800; font-size: 13px; margin: 14px 0 5px; background: #f1f5f9; padding: 6px 9px; border-radius: 7px; }
+
+@media print {
+  body * { visibility: hidden; }
+  #modalOverlay, #modalOverlay * { visibility: visible; }
+  #modalOverlay { position: absolute; inset: 0; background: #fff; padding: 0; display: block; }
+  #modalOverlay .modal { width: 100%; max-width: 100%; max-height: none; box-shadow: none; border-radius: 0; }
+  #modalOverlay .modal-head, #modalOverlay .modal-foot, .modal-x { display: none; }
+  .modal-body { overflow: visible; }
+}
+
 /* ---------- responsive ---------- */
 @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 900px) {

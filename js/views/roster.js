@@ -1,25 +1,30 @@
-/* ===== Roster / ロスター — drag & drop assignment ===== */
+/* ===== Roster / ロスター — drag & drop assignment, multi-week ===== */
 (function () {
   "use strict";
-  const { $, $$, esc, initials, jobCardHTML, toast } = UI;
+  const { $, $$, esc, initials, jobCardHTML, toast, weekDates, weekLabel, addDays } = UI;
 
   let _sortables = [];
+  let _el = null;
+  let weekAnchor = null;
 
   window.Views = window.Views || {};
   window.Views.roster = {
     title: "ロスター",
     render(el) {
+      _el = el;
       const biz = Store.currentBiz;
-      const week = Store.WEEK;
+      weekAnchor = weekAnchor || Store.WEEK[0];
+      const week = weekDates(weekAnchor);
       const staff = Store.staff(biz).filter((s) => s.active);
       const pool = Store.jobs({ biz }).filter((j) => !j.assigned);
 
       el.innerHTML = `
         <div class="page-head">
           <div><h1>ロスター <span class="muted">/ Roster</span></h1>
-          <p class="muted">未割当カードをスタッフ×曜日のマスへドラッグ。割当は日報・給与へ即反映。</p></div>
+          <p class="muted">未割当カードをスタッフ×曜日のマスへドラッグ。割当は日報・給与へ即反映。請求済は黄色表示。</p></div>
           <div class="week-nav">
-            <button title="prev">‹</button><span>21–27 Sep 2026</span><button title="next">›</button>
+            <button id="wPrev" title="前週">‹</button><span id="wLabel">${weekLabel(week)}</span><button id="wNext" title="翌週">›</button>
+            <button class="btn ghost sm" id="wToday">今週</button>
           </div>
         </div>
 
@@ -33,24 +38,28 @@
           </aside>
 
           <section class="panel">
-            <div class="panel-head"><h2>🗓 週間ロスター</h2>
-              <span class="muted small">ドラッグ＆ドロップ / クリックで詳細</span></div>
+            <div class="panel-head"><h2>🗓 週間ロスター</h2><span class="muted small">ドラッグ＆ドロップ / ダブルクリックで編集</span></div>
             <div class="roster-wrap">
               <div class="roster" id="roster" style="grid-template-columns:150px repeat(${week.length}, minmax(150px,1fr));min-width:${150 + week.length * 150}px">
                 <div class="r-cell r-corner r-head">Staff \\ Day</div>
                 ${week.map((d) => `<div class="r-cell r-head ${d === Store.TODAY ? "today" : ""}">
-                    <div>${d.slice(8)} Sep</div><div class="dow">${UI.DOW[new Date(d + "T00:00:00Z").getUTCDay()]}</div></div>`).join("")}
+                    <div>${d.slice(8)} ${UI.MON[Number(d.slice(5,7)) - 1]}</div><div class="dow">${UI.DOW[new Date(d + "T00:00:00Z").getUTCDay()]}</div></div>`).join("")}
                 ${staff.map((s) => rosterRow(s, week)).join("")}
               </div>
             </div>
           </section>
         </div>`;
 
+      $("#wPrev", el).addEventListener("click", () => { weekAnchor = addDays(weekAnchor, -7); render(el); });
+      $("#wNext", el).addEventListener("click", () => { weekAnchor = addDays(weekAnchor, 7); render(el); });
+      $("#wToday", el).addEventListener("click", () => { weekAnchor = Store.WEEK[0]; render(el); });
       bindCards(el);
       initSortable(el);
     },
     destroy() { _sortables.forEach((s) => { try { s.destroy(); } catch (e) {} }); _sortables = []; },
   };
+
+  function render(el) { window.Views.roster.render(el); }
 
   function rosterRow(s, week) {
     let html = `<div class="r-cell r-staff">
@@ -65,20 +74,14 @@
   }
 
   function bindCards(el) {
-    $$(".job", el).forEach((c) => c.addEventListener("dblclick", () => {
-      Views.bookings.openForm(c.dataset.id);
-    }));
+    $$(".job", el).forEach((c) => c.addEventListener("dblclick", () => Views.bookings.openForm(c.dataset.id)));
   }
 
   function initSortable(el) {
     _sortables.forEach((s) => { try { s.destroy(); } catch (e) {} });
     _sortables = [];
     if (typeof Sortable === "undefined") return;
-    const opts = {
-      group: "jobs", animation: 160, ghostClass: "sortable-ghost",
-      chosenClass: "sortable-chosen", forceFallback: true, fallbackOnBody: true,
-      onAdd: onMove, onUpdate: onMove,
-    };
+    const opts = { group: "jobs", animation: 160, ghostClass: "sortable-ghost", chosenClass: "sortable-chosen", forceFallback: true, fallbackOnBody: true, onAdd: onMove, onUpdate: onMove };
     _sortables.push(Sortable.create($("#poolBody", el), opts));
     $$(".r-slot", el).forEach((slot) => _sortables.push(Sortable.create(slot, opts)));
   }
@@ -89,8 +92,6 @@
     const toPool = dest.id === "poolBody";
     const staffId = toPool ? null : dest.dataset.staff;
     const date = toPool ? null : dest.dataset.day;
-    // Defer the store mutation so SortableJS finishes its own DOM handling before
-    // the router re-renders (replaces innerHTML) the roster grid.
     setTimeout(() => {
       Store.assign(id, staffId, date);
       if (toPool) toast("未割当に戻しました");
